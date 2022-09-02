@@ -1,0 +1,62 @@
+version: '3.7'
+services:
+  frontend:
+    image: 'periscope-hub:5000/ecs-portal/frontend:release'
+  # collector:
+  #   image: 'periscope-hub:5000/ecs-portal/collector:release'
+  #   depends_on: 
+  #     - 'mongo'
+  #   ports:
+  #    - "127.0.0.1:8989:80"
+  #   volumes:
+  #    - "/var/log/periscope/ecs-portal:/var/log/periscope"
+  #    - "/app/config/collector:/config"
+  #    - "/ingest:/ingest"
+  ecs-collector:
+    image: 'periscope-hub:5000/ecs-portal/ecs-collector:release'
+    depends_on: 
+      - 'mongo'
+    volumes:
+     - "/app/config/ecs-collector:/config"
+     - "/var/log/periscope/ecs-portal:/var/log/periscope"
+  query-backend:
+    image: 'periscope-hub:5000/ecs-portal/query-backend:release'
+    depends_on: 
+      - 'mongo'
+    volumes:
+     - "/app/config/query-backend:/config"
+     - "/var/log/periscope/ecs-portal:/var/log/periscope"
+  ecs-backend:
+    image: 'periscope-hub:5000/ecs-portal/ecs-backend:release'
+    volumes:
+     - "/app/config/ecs-backend:/config"
+     - "/var/log/periscope/ecs-portal:/var/log/periscope"
+  user-backend:
+    image: 'periscope-hub:5000/ecs-portal/user-backend:release'
+    depends_on: 
+      - 'mongo'
+    volumes:
+     - "/app/config/user-backend:/config"
+     - "/var/log/periscope/ecs-portal:/var/log/periscope"
+  api-client:
+    image: 'periscope-hub:5000/ecs-portal/api-client:release'
+    depends_on: 
+      - 'mongo'
+    volumes:
+     - "/app/config/api-client:/config"
+     - "/var/log/periscope/ecs-portal:/var/log/periscope"
+  auth-proxy:
+    image: 'periscope-hub:5000/ecs-portal/auth-proxy:release'
+    ports:
+     - "443:443"
+    volumes:
+     - "/app/config/auth-proxy:/config"
+     - "/var/log/periscope/ecs-portal:/var/log/periscope"
+  mongo:
+    image: 'mongo:3.6-stretch'
+    ports:
+     - "27017:27017"
+    volumes:
+     - "/db/mongo:/data/db"
+     - "/db/mongo-config:/data/configdb"
+     - "/var/log/periscope/ecs-portal/mongo:/var/log/mongodb"

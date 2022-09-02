@@ -1,0 +1,27 @@
+{
+  "name": "util-commons",
+  "version": "1.0.0",
+  "description": "This utility imports the data from csv file and loads them into the mongo instance",
+  "scripts": {
+    "test": "jest",
+    "test-perf": "ts-node ./test/Collections.perf.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "repository": {},
+  "dependencies": {
+    "bson": "1",
+    "camelcase": "4.1.0",
+    "express": "*",
+    "kafkajs": "1.16.0"
+  },
+  "devDependencies": {
+    "@types/bson": "*",
+    "@types/camelcase": "4.1.0",
+    "@types/chai": "^4.1.3",
+    "@types/node": "16.11.7",
+    "@types/express": "*",
+    "chai": "^4.1.2",
+    "ts-node": "6.2.0"
+  }
+}

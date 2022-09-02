@@ -1,0 +1,13 @@
+{
+    presets: [
+        [ 'react' ],
+        [ 'env', 
+            {
+                targets: {
+                   browsers: [ "last 2 chrome versions", "last 2 firefox versions", "last 2 safari versions", "edge 13.0" ]
+               },
+               modules: false
+            }
+        ]
+    ]
+}

@@ -1,0 +1,149 @@
+import { IEvent, IEventDispatcher, IEventListener } from "./IEvent";
+import { Kafka, Producer, ProducerConfig, ProducerRecord, CompressionTypes, KafkaMessage, logLevel as IKafkaLogLevel, LogEntry as IKafkaLogEntry, EachBatchPayload, EachMessagePayload } from "kafkajs";
+
+import { Semaphore } from 'periscope-commons/Semaphore'
+
+import { v1 as uuid } from 'uuid'
+
+// Inhouse parser/deparser, based on JSON and bson notation.
+// Alternatively we could use avro-js
+import * as EJSON from "../EjsonParser";
+
+import LOGGERS, { LogLevel } from "../logger/index";
+import { SimpleSet, SmartSet } from "../Collections";
+import { retry, timeoutPromise } from "../PromiseUtils";
+import { ReducingEventQueue } from "../../import-commons/src/ReducingEventQueue";
+
+const LOGGER = LOGGERS.getLogger("kafka.EventDispatcher");
+
+const LOGGER_SEND = LOGGERS.getLogger("kafka.EventDispatcher.send");
+const LOGGER_RECEIVE = LOGGERS.getLogger("kafka.EventDispatcher.receive");
+
+
+
+export class KafkaEventDispatcher implements IEventDispatcher {
+    private readonly kafkaHandle: Kafka;
+    private readonly kafkaProducer: Producer;
+
+    /** This collection is present to make sure we don't add same listener twice */
+    private readonly listeners = new SimpleSet<IEventListener>( (a,b) => a===b );
+    
+    /** Number of listeners that were successfully registered and are ready to receive messages. */
+    private listenersReady = 0;
+
+    getTopicNameForEventType(eventType: string) {
+        return this.hostId + "_events_" + eventType;
+    }
+
+    async queueEvent(event: IEvent): Promise<void> {
+        LOGGER_SEND.info("Queueing event {}", event)
+
+        /** Making sure producer is connected */
+        await this.kafkaProducer.connect();
+
+        LOGGER_SEND.debug("Producer connected, sending...")
+        const recordMetadata = await this.kafkaProducer.send({
+            topic: this.getTopicNameForEventType(event.eventType),
+            acks: 1,
+            messages: [
+                {
+                    key: event.eventType,
+                    value: EJSON.stringify(event)
+                }
+            ]
+        })
+
+        LOGGER_SEND.debug("Event sent. Metadata: {}", recordMetadata)
+    }
+
+    async addListener(...listeners: IEventListener[]): Promise<void> {
+        return Promise.all(listeners.map( l => this.addListenerInternal(l))).then( v => {})
+    }
+
+    async addListenerInternal(listener: IEventListener): Promise<void> {
+        // Checking if the listener is not already added.
+        if (this.listeners.add(listener)) {
+            try {
+                let groupId = this.hostId + ":" + listener.constructor.name;
+                if (typeof (listener as any).getName === "function") {
+                    groupId += ":" + (listener as any).getName();
+                }
+
+                LOGGER.info("Adding listener to group {}", groupId);
+
+                const consumer = this.kafkaHandle.consumer({
+                    groupId,
+                    maxWaitTimeInMs: 1000,
+                    sessionTimeout: 10000,
+                    heartbeatInterval: 3000,                      
+                })
+
+                LOGGER.debug("Created consumer.")
+
+                // Get unique list of topics to subscribe. Different eventTypes might be mapped to same topic...
+                const topicsToSubscribe = new SmartSet(listener.getEventTypeNames().map( t => this.getTopicNameForEventType(t) ));
+
+                for (const topic of topicsToSubscribe) {
+                    LOGGER.debug("Subcribing to topic {}", topic)
+
+                    await consumer.subscribe({
+                        topic,
+                        fromBeginning: true,
+                    })
+                }
+
+                LOGGER.debug("Waiting for the run method to complete.");
+
+                await consumer.run({
+                    eachMessage: async (payload: EachMessagePayload) => {
+                        LOGGER_RECEIVE.info("Group {}, Received message in topic {}, offset {}", groupId, payload.topic, payload.message.offset);
+
+                        let s = payload.message?.value?.toString();
+                        let o = s && EJSON.parse(s);
+
+                        LOGGER_RECEIVE.debug("  Contents of the message: {}", o);
+                    
+                        try {
+                            await retry(3, ()=>listener.notify(o), 5000);
+                        }
+                        catch (error: any) {
+                            // We couldn't complete the task successfully
+                            LOGGER.fatal("Listener in group {} keeps crashing. Last error {}. Shutting down.", groupId, error)
+                            
+                            process.exit(-1);
+                        }
+                    }
+                })
+
+                ++this.listenersReady;
+                LOGGER.debug("Added listener to group {}. {} active listeners, {} not yet ready.", groupId, this.listenersReady, this.listeners.size()-this.listenersReady);
+
+                if (this.listenersReady === this.listeners.size()) {
+                    LOGGER.info("Total {} registered listeners...", this.listenersReady)
+                }
+            }
+            catch (error: any) {
+                LOGGER.fatal("Error while subscribing the listener. Shutting down in 5 seconds...", error)
+
+                await timeoutPromise(5000);
+
+                process.exit(-1);
+            }
+        }
+    }
+
+    constructor(private hostId: string, private moduleName: string, kafkaBrokerHost: string, kafkaBrokerPort: number = 9092) {
+        const clientId = moduleName + '@' + hostId;
+        
+        LOGGER.info("Connecting to broker {}:{} as client {}", kafkaBrokerHost, kafkaBrokerPort, clientId );
+        
+        this.kafkaHandle = new Kafka({
+            clientId,
+            brokers: [ `${kafkaBrokerHost}:${kafkaBrokerPort}`],
+            logCreator: kafkaLogCreator
+        })
+    
+        this.kafkaProducer = this.kafkaHandle.producer({
+        });
+    }
+}

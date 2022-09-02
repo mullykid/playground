@@ -1,0 +1,17 @@
+[Unit]
+Description=Periscope Frontend service
+After=network.target
+
+[Service]
+Type=simple
+User=periscope
+WorkingDirectory=/usr/local/lib/periscope/frontend
+ExecStart=/usr/local/bin/yarn run dev
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=periscope-frontend
+
+# Restart=on-failure # or always, on-abort, etc
+
+[Install]
+WantedBy=multi-user.target

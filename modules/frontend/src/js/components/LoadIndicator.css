@@ -1,0 +1,14 @@
+.statusContainer {
+    text-align: center;
+}
+
+.status {
+    display: inline-block;
+}
+
+button.pleaseWaitImage {
+    background-image: url("/img/Wait.gif"); 
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 25px;
+}
