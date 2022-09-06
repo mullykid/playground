@@ -516,3 +516,7 @@ export function yearMonth2String(s: string, delimiter: string) {
     let digits = s.split(delimiter)
     return `${MONTH_NAMES[parseInt(digits[1]) - 1]} ${digits[0]}`
 }
+
+export function round2DecimalPlaces(v: number){
+    return Math.round(v * 100) / 100
+}

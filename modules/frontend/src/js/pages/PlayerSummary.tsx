@@ -10,45 +10,10 @@ import DataGrid, {Column, SortColumn} from 'react-data-grid';
 import { GenericDataComponent } from '../components/GenericDataComponent'
 import { FormControl, InputLabel, MenuItem, OutlinedInput } from '@mui/material';
 import Select, { SelectChangeEvent } from '@mui/material/Select'
-import { stringify } from 'util-commons/EjsonParser';
-
-const useStyles = makeStyles({
-    root: {
-        padding: 0
-    }
-})
+import { pageStyles, TabPanel, a11yProps } from './Common'
+import { round2DecimalPlaces } from 'util-commons/FormatUtils'
 
 interface IPlayerSummaryProps{
-
-}
-
-interface ITabPanelProps extends React.PropsWithChildren<any>{
-    index: number
-    value: number
-};
-
-function TabPanel(props:ITabPanelProps) {
-    const { children, value, index, ...other } = props;
-  
-    return (
-      <Typography
-        component="div"
-        role="tabpanel"
-        hidden={value !== index}
-        id={`scrollable-auto-tabpanel-${index}`}
-        aria-labelledby={`scrollable-auto-tab-${index}`}
-        {...other}
-      >
-        <Box p={3}>{props.children}</Box>
-      </Typography>
-    );
-}
-  
-function a11yProps(index: number) {
-    return {
-        id: `scrollable-auto-tab-${index}`,
-        "aria-controls": `scrollable-auto-tabpanel-${index}`
-    };
 }
 
 interface IRow {
@@ -80,10 +45,9 @@ export const PlayerSummary = (props: IPlayerSummaryProps) => {
     const [league, setLeague] = useState<string>("EPL")
     const [season, setSeason] = useState<number>(2022)
 
-    const classes = useStyles();
+    const classes = pageStyles();
 
     const loadData = async() => {
-        console.log(season)
         let dataPromise = await Auth.authFetch('/api/players', {
             league: league,                        
             season: season,
@@ -91,12 +55,12 @@ export const PlayerSummary = (props: IPlayerSummaryProps) => {
             position: QueryParameters.encodeQueryParameterToSingleString(position)
         });
         const data = dataPromise.results.map((v: IRow, i: number) => {  
-            v.xG = Math.round(v.xG * 100) / 100
-            v.xA = Math.round(v.xA * 100) / 100
-            v.npg = Math.round(v.npg * 100) / 100
-            v.npxG = Math.round(v.npxG * 100) / 100
-            v.xGBuildup = Math.round(v.xGBuildup * 100) / 100
-            v.xGChain = Math.round(v.xGChain * 100) / 100
+            v.xG = round2DecimalPlaces(v.xG)
+            v.xA = round2DecimalPlaces(v.xA)
+            v.npg = round2DecimalPlaces(v.npg) 
+            v.npxG = round2DecimalPlaces(v.npxG) 
+            v.xGBuildup = round2DecimalPlaces(v.xGBuildup)
+            v.xGChain = round2DecimalPlaces(v.xGChain)
        
             return v
         })
@@ -183,7 +147,7 @@ export const PlayerSummary = (props: IPlayerSummaryProps) => {
     return (
         <div >
             <Breadcrumbs breadcrumbs={ [ "Player Summary" ] } />
-            <Box className={classes.root} sx={{ width: '100%', height: '100%'}}>
+            <Box sx={{ width: '100%', height: '100%'}}>
                 <Tabs
                     value={tabValue}
                     onChange={handleTabChange}
@@ -196,7 +160,7 @@ export const PlayerSummary = (props: IPlayerSummaryProps) => {
                     <Tab label="Summary" {...a11yProps(0)} />                 
                 </Tabs>                        
                 
-                <TabPanel value={tabValue} index={0}>
+                <TabPanel classes={{ root: classes.tab }} value={tabValue} index={0}>
                     <Grid container >      
                     <FormControl sx={{ m: 1, minWidth: 200 }} size="small">
                         <InputLabel id="season">Season</InputLabel>

@@ -176,7 +176,6 @@ export class QueryParameters {
         }
 
         if (Array.isArray(value)) {
-            console.log("herer")
             return this.encodeArray(value, encodeObjectsWithEJSON);
         }
 
