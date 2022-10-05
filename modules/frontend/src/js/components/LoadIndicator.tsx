@@ -17,11 +17,11 @@ export enum LoadState {
 export const LoadIndicator = (props: ILoadIndicatorProps) => {
     switch (props.loadState) {
         case LoadState.ERROR:
-            return (<div className="statusContainer"><div className="status well text-danger">Error while loading data</div></div>)
+            return (<Box sx={{ alignItems: "center", justifyContent: 'center', display: 'flex', width: '100%', height: '100%', flexDirection: "column"}}>Error while loading data</Box>)
         case LoadState.LOADING:
-            return (<Box sx={{ display: 'inline-block', position: 'absolute', width: '100%' }}><CircularProgress /></Box>)
+            return (<Box sx={{ alignItems: "center", justifyContent: 'center', display: 'flex', width: '100%', height: '100%', flexDirection: "column"}}><CircularProgress /></Box>)
         case LoadState.NO_DATA:
-            return (<div className="statusContainer"><div className="status well text-primary">No data available</div></div>)
+            return (<Box sx={{ alignItems: "center", justifyContent: 'center', display: 'flex', width: '100%', height: '100%', flexDirection: "column"}}>No data available</Box>)
     }
 }
 

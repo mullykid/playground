@@ -29,8 +29,9 @@ const config = {
 		extensions: ['*', '.js', '.json', '.jsx', '.ts', '.tsx'],
 		fallback: {
 			"fs": false,
-            "crypto": require.resolve('crypto-browserify'),
-            "stream": require.resolve('stream-browserify')		}
+      "crypto": require.resolve('crypto-browserify'),
+      "stream": require.resolve('stream-browserify')		
+    }
 	},
 	plugins: [
 		new webpack.ProvidePlugin({
@@ -48,8 +49,7 @@ const config = {
   devServer: {
     port: 58182,
     static: [
-        path.join(SRC_DIR, 'assets'),
-        path.join(__dirname, '..', 'commons/periscope-components/src')
+        path.join(SRC_DIR, 'assets')
     ],
 
     historyApiFallback: {

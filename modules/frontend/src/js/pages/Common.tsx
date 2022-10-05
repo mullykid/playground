@@ -9,11 +9,16 @@ interface ITabPanelProps extends React.PropsWithChildren<any>{
 
 export const pageStyles = makeStyles(theme => ({
     tab: { 
-        '& .MuiBox-root': {
-          paddingLeft: '0px',
-          paddingRight: '0px'
-          },
+      '& .MuiBox-root': {
+        paddingLeft: '0px',
+        paddingRight: '0px'
         },
+      },
+    container:{
+      margingLeft: '20px',
+      marginRight: '20px',
+      wdith: '100%'
+    }
     })
 );
 

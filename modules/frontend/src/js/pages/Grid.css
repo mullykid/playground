@@ -1,0 +1,19 @@
+.ag-theme-material {
+    --ag-header-height: 30px;
+    --ag-header-foreground-color: #38003c;
+    --ag-selected-row-background-color: #00ff85;
+}
+.ag-theme-material .ag-header-group-cell {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.ag-theme-alpine {
+    --ag-header-height: 30px;
+    --ag-header-foreground-color: #38003c;
+    --ag-selected-row-background-color: #00ff85;
+}
+.ag-theme-alpine .ag-header-group-cell {
+    font-weight: bold;
+    font-size: 14px;
+}
