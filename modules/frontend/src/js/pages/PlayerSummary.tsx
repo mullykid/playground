@@ -270,7 +270,7 @@ export const PlayerSummary = (props: IPlayerSummaryProps) => {
                     </GenericDataComponent>   
                 </Grid> 
                 <Grid item md={6}>
-                    <PlayerShots player={player} season={season} games={games}/>                                 
+                    <PlayerShots height={500} player={player} season={season} games={games}/>                                 
                 </Grid>   
                 <Grid item md={6}>
                     <PlayerAdvancedStats height={500} player={player}/>  

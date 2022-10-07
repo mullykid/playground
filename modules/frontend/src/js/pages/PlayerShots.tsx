@@ -15,6 +15,7 @@ interface IShotRec {
     Y: number,
     x: number,
     y: number,
+    z: number,
     xG: number,
     result: string;
     player: string;
@@ -36,7 +37,8 @@ interface IShotRec {
 export interface IPlayerShotProps{
     player: IPlayer,
     games: number,
-    season: number
+    season: number,
+    height: number
 }
 
 interface IShotPlot{
@@ -60,10 +62,26 @@ export const PlayerShots = (props: IPlayerShotProps) => {
             let shots:IShotRec[]  = playerShots.results.map((v: IShotRec, i: number) => {  
                 v.xG = round2DecimalPlaces(v.xG)
                 let temp = v.X
-                v.x = round2DecimalPlaces(v.X)
-                v.y = round2DecimalPlaces(v.Y)
+                v.x = round2DecimalPlaces(v.Y)
+                v.y = round2DecimalPlaces(temp)
+                v.z = round2DecimalPlaces(v.xG)
                 return v
             })
+
+            if (props.games > 0){   //filter by last X games.
+                shots.sort((a:IShotRec, b:IShotRec) => b.id - a.id); 
+                let id = 0
+                let gameCount = 0
+                shots = shots.filter((s: IShotRec, i: number) => {  
+                    if (id != s.match_id && gameCount <= props.games){
+                        id = s.match_id
+                        gameCount += 1                        
+                    }
+                    if (id === s.match_id){
+                        return s
+                    }
+                })    
+            }
 
             let shotPlotData: IShotPlot[] = []
            
@@ -95,13 +113,13 @@ export const PlayerShots = (props: IPlayerShotProps) => {
 
     const plotOptions = {
         chart: {
-          height: 350,
-          type: 'scatter',
-          zoom: {
-            enabled: false,
-            type: 'xy'
-          },
-          background: '/img/Goal.png'
+            type: 'scatter',
+            zoom: {
+                enabled: false,
+                type: 'xy'
+            },
+            id: "bubble",
+            offsetY: 20       
         },
         /*noData: {
             text: "No data available",
@@ -115,7 +133,7 @@ export const PlayerShots = (props: IPlayerShotProps) => {
               fontFamily: undefined
             }
         },*/
-        title: {
+        /*title: {
             text: 'Shot Map',
             align: 'center',
             offsetX: 0,
@@ -123,21 +141,45 @@ export const PlayerShots = (props: IPlayerShotProps) => {
                 fontSize: '18px', 
                 //color: color:black
             }
+        },*/
+        grid: {
+            show: false
         },
         xaxis: {
-          tickAmount: 5,
-          labels: {
-            formatter: function(val:any) {
-              return parseFloat(val).toFixed(1)
+            show: false,
+            tickAmount: 10,
+            labels: {
+                show: false,
+                formatter: function(val:any) {
+                    return parseFloat(val).toFixed(1)
+                }
+            },
+            min: 0,
+            max: 1,
+            axisBorder: { 
+                show: false  //or just here to disable only y axis
+            },
+            axisTicks: { 
+                show: false  //or just here to disable only y axis
             }
-          },
-          min: 0.4,
-          max: 1
-        },
+        },        
         yaxis: {
-          tickAmount: 5,
-          min: 0,
-          max: 1
+            show: false,
+            tickAmount: 10,
+            min: 0,
+            max: 1,
+            axisBorder: { 
+                show: false  //or just here to disable only y axis
+            },
+            axisTicks: { 
+                show: false  //or just here to disable only y axis
+            }
+        },
+        dataLabels: {
+            enabled: false
+        },
+        fill: {
+            opacity: 0.8
         },
         tooltip: {
             custom: (props: ITooltip) => {
@@ -152,6 +194,19 @@ export const PlayerShots = (props: IPlayerShotProps) => {
                 '<li><b>Result</b>: \'' + rec.result + '\'</li>' +
                 '</ul>';
               }
+        },
+        legend:{
+            offsetY: 0
+        },
+        noData: {
+            text: "No player selected",
+            align: 'center',
+            verticalAlign: 'middle',
+            offsetX: 0,
+            offsetY: 0,
+            style: {              
+              fontSize: '16px'
+            }
         }
     }
 
@@ -163,12 +218,13 @@ export const PlayerShots = (props: IPlayerShotProps) => {
         */
 
     return(
-        <GenericDataComponent height={500} loadState={loadState}>
+        <GenericDataComponent className='shotPlot' height={props.height} loadState={loadState}>
             <Chart 
                 options={plotOptions} 
                 series={shotPlot} 
-                type="scatter" 
-                height={500}                 
+                
+                type="bubble" 
+                height={props.height - 20}                
             />
         </GenericDataComponent>
     )

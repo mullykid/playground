@@ -25,6 +25,10 @@ export const PlayerAdvancedStats = (props: IPlayerStatsProps) => {
     const formatData = async() => {
         if (props.player){
             let d: IRadar[] = [{name: 'stats', data: []}]
+            d[0].data.push(props.player.goals)
+            d[0].data.push(props.player.assists)
+            d[0].data.push(props.player.kP90)
+            d[0].data.push(props.player.shots90)
             d[0].data.push(props.player.xG)
             d[0].data.push(props.player.xGI)
             d[0].data.push(props.player.xG90)
@@ -55,12 +59,44 @@ export const PlayerAdvancedStats = (props: IPlayerStatsProps) => {
 
     const radarOptions = {
         chart: {
-          height: props.height,
+        //  height: props.height - 50,
           type: 'radar'
         },
+        title: {
+            text: props.player ? props.player.player_name + ' Stats' : undefined,
+            align: 'center',
+            offsetX: 0,
+            style: {
+                fontSize: '18px', 
+                //color: color:black
+            }
+        },
         xaxis: {
-            categories: ['xG', 'xGI', 'xG90', 'xA', 'xA90', 'npg', 'npxG', 'xGBuildup', 'xGChain']
-        }       
+            categories: ['goals', 'xG', 'xG90', 'npg', 'npxG', 'assists', 'xA', 'xA90', 'xGI', 'kP90', 'shots90', 'xGBuildup', 'xGChain']
+        } ,
+        fill: {
+            opacity: 0.5,
+            colors: ['#00ff85']
+        },
+        stroke: {
+            show: true,
+            width: 2,
+            colors: ['#00ff85'],
+            dashArray: 0
+        },
+        markers: {
+            colors: "#38003c"
+        },
+        noData: {
+            text: "No player selected",
+            align: 'center',
+            verticalAlign: 'middle',
+            offsetX: 0,
+            offsetY: 0,
+            style: {              
+              fontSize: '16px'
+            }
+        }
     }
     const loadState = useEffectToLoadData(formatData, [props.player])
     /*
@@ -75,7 +111,7 @@ export const PlayerAdvancedStats = (props: IPlayerStatsProps) => {
                 options={radarOptions} 
                 series={chartData} 
                 type="radar" 
-                height={props.height} 
+                height={props.height-20} 
             />
         </GenericDataComponent>
     )

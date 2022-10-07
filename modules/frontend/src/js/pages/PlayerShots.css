@@ -1,6 +1,6 @@
-.apexcharts-canvas {
-    background-image: url("/img/Goal.gif") !important;
+.shotPlot .apexcharts-canvas {
+    background-image: url("../img/Goal.png") !important;
     background-position: center;
     background-repeat: no-repeat;
-    background-size: cover
+    background-size: contain !important; 
 }
