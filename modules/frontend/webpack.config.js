@@ -21,6 +21,10 @@ const config = {
       {
         test: /\.(css|less)$/,
         use: ["style-loader", "css-loader"]
+      },
+      {
+        test: /\.png/,
+        type: 'asset/resource'
       }
     ]
   },
